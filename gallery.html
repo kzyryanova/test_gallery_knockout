@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang='en'> 
+  <head> 
+    <title>Gallery Knockout.js</title> 
+    <meta charset='utf-8'> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <link rel='stylesheet' href='css/style.css' /> 
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://getbootstrap.com/dist/js/bootstrap.js"></script>
+
+  </head> 
+  <body> 
+    <header role="banner">
+      <div class="container">
+        <h1 class="logo"><span data-bind='text: fullName'></span>'s Photo Gallery</h1> 
+      </div>
+    </header>
+    <div class="container">
+      <div class="img-list">
+        <ul data-bind="foreach: items">
+          <li data-bind="text: title"></li>
+        </ul>
+      </div>
+
+      <div class="img-section">
+        <div id="carousel" class="carousel slide">
+          <!-- Indicators -->
+          <ol class="carousel-indicators"   data-bind="visible: items().length > 1, foreach: items ">
+            <li data-target="#carousel" data-bind="attr: { 'data-slide-to': $index }, css: { 'active' : $index() == $root.currentPage() }"></li>
+          </ol>
+          <!-- Wrapper for slides -->
+          <div class="carousel-inner" data-bind="foreach: items">
+            <div class="item" data-bind="css: { 'active' : $index() == $root.currentPage() }"  >
+              <h3 data-bind="text: title"></h3>
+              <img data-bind="attr:{src: imagePath}">  
+              <p>
+                <input data-bind='value: tagToAdd, valueUpdate: "afterkeydown"' />
+                <button data-bind="click: addTag">Add tag</button>  
+              </p>
+              <ul data-bind="foreach: tags"> 
+                <li>  
+                  <span data-bind="text: $data"> </span>
+                </li> 
+              </ul>           
+            </div>
+          </div>
+        </div>
+        <!-- Controls -->
+        <a class="left carousel-control" href="#carousel" data-slide="prev">
+          <span class="icon-prev">‹</span>
+        </a>
+        <a class="right carousel-control" href="#carousel" data-slide="next">
+          <span class="icon-next">›</span>
+        </a>
+      </div>
+
+      <div class="tags-section">
+        <h3>Tag list</h3>
+        <button data-bind="click: clearFilter, visible: nonFilteredItems().length > 0">Clear Filter</button>
+        <ul class="c-list" data-bind="foreach: allTags"> 
+          <li data-bind="text: $data, click: $root.filterTags"></li>
+        </ul> 
+
+      </div>
+    </div>
+
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+    <script src="js/underscore.js"></script>
+    
+    <script type='text/javascript'> 
+
+      function Image(title, rating, tags, imagePath) { 
+        var self = this;
+        self.title = ko.observable(title); 
+        self.rating = ko.observable(rating); 
+        self.imagePath = ko.observable(imagePath);
+        tags = typeof(tags) !== 'undefined' ? tags : []; 
+        self.tags = ko.observableArray(tags); 
+        
+        self.tagToAdd = ko.observable("");
+        self.addTag = function(){
+          if ((self.tagToAdd() != "") && (self.tags.indexOf(self.tagToAdd()) < 0))
+            self.tags.push(self.tagToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+          self.tagToAdd(""); // Clears the text box, because it's bound to the "itemToAdd" observable
+        }.bind(this);
+      }; 
+
+      function GalleryViewModel() {
+        var self = this;
+        self.firstName = ko.observable("John"); 
+        self.lastName = ko.observable("Smith");
+        self.fullName = ko.computed(function() { 
+          return self.firstName() + " " + self.lastName(); 
+        }, self); 
+
+        self.items = ko.observableArray([ 
+          new Image("Jewelry 001", null, ['diamonds', 'brilliant'], 'img/001.jpg'), 
+          new Image("Jewelry 002", null, ['diamonds'], 'img/002.jpg'), 
+          new Image("Jewelry 003", null, ['brilliant'], 'img/003.jpg'),
+          new Image("Jewelry 004", null, null, 'img/004.jpg'),
+          new Image("Jewelry 005", null, null, 'img/005.jpg'),
+          new Image("Jewelry 006", null, null, 'img/006.jpg'),
+          new Image("Jewelry 007", null, null, 'img/007.jpg'),
+          new Image("Jewelry 008", null, null, 'img/008.jpg'),
+        ]); 
+
+        self.nonFilteredItems = ko.observableArray();
+
+        self.allTags = ko.computed(function(){
+          var _tags = [];
+          _.each(self.items(), function(item){ 
+            _.each(item.tags(), function(tag){
+              _tags.push(tag);
+            })          
+          }); 
+          return _.uniq(_tags);
+        }, self);
+
+        self.currentPage = ko.observable(0);
+
+        self.chosenTag = ko.observable();
+
+        // Behaviours    
+        self.filterTags = function(selectedTag) { 
+          if (self.nonFilteredItems().length > 0)
+            self.items(self.nonFilteredItems());
+          var filtered = _.filter(self.items(), function(item){
+            var t = _.filter(item.tags(), function(tag){
+              return tag == selectedTag;
+            });
+            return _.isArray(t) && t.length > 0
+          });
+          self.nonFilteredItems(self.items());
+          self.items(filtered);
+        }; 
+
+        self.clearFilter = function(){
+          self.items(self.nonFilteredItems());
+          self.nonFilteredItems([]);
+        };
+
+      };
+
+      var vm =  new GalleryViewModel();
+      ko.applyBindings(vm);
+
+    </script> 
+  </body> 
+</html> 
