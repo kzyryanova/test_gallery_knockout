@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel='stylesheet' href='css/style.css' /> 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
@@ -21,7 +21,7 @@
     </header>
     <div class="container">
       <div class="img-list">
-        <ul data-bind="foreach: items">
+        <ul data-bind="foreach: filteredImagesByTag">
           <li data-bind="text: title"></li>
         </ul>
       </div>
@@ -29,13 +29,18 @@
       <div class="img-section">
         <div id="carousel" class="carousel slide">
           <!-- Indicators -->
-          <ol class="carousel-indicators"   data-bind="visible: items().length > 1, foreach: items ">
+          <ol class="carousel-indicators"   data-bind="visible: items().length > 1, foreach: filteredImagesByTag ">
             <li data-target="#carousel" data-bind="attr: { 'data-slide-to': $index }, css: { 'active' : $index() == $root.currentPage() }"></li>
           </ol>
           <!-- Wrapper for slides -->
-          <div class="carousel-inner" data-bind="foreach: items">
+          <div class="carousel-inner" data-bind="foreach: filteredImagesByTag">
             <div class="item" data-bind="css: { 'active' : $index() == $root.currentPage() }"  >
-              <h3 data-bind="text: title"></h3>
+              <div class="row">
+                <h3 class="pull-right" data-bind="text: title"></h3>
+                <div class="rating">
+                  <span data-bind="starRating: rating"></span>
+                </div>
+              </div>
               <img data-bind="attr:{src: imagePath}">  
               <p>
                 <input data-bind='value: tagToAdd, valueUpdate: "afterkeydown"' />
@@ -60,8 +65,11 @@
 
       <div class="tags-section">
         <h3>Tag list</h3>
-        <button data-bind="click: clearFilter, visible: nonFilteredItems().length > 0">Clear Filter</button>
-        <ul class="c-list" data-bind="foreach: allTags"> 
+        <div data-bind="visible: chosenTag">
+          <button data-bind="click: clearFilter">Clear Filter</button>
+          <p><strong data-bind = "text: chosenTag"></strong></p>
+        </div>
+        <ul class="c-list" data-bind="foreach: allTags, visible: _.isEmpty(chosenTag())"> 
           <li data-bind="text: $data, click: $root.filterTags"></li>
         </ul> 
 
@@ -73,6 +81,32 @@
     <script src="js/underscore.js"></script>
     
     <script type='text/javascript'> 
+
+      ko.bindingHandlers.starRating = {
+        init: function(element, valueAccessor) {
+          $(element).addClass("starRating");
+          for (var i = 0; i < 5; i++)
+            $("<span>").appendTo(element);
+               
+          // Handle mouse events on the stars
+          $("span", element).each(function(index) {
+            $(this).hover(
+              function() { $(this).prevAll().add(this).addClass("hoverChosen") }, 
+              function() { $(this).prevAll().add(this).removeClass("hoverChosen") }                
+            ).click(function() { 
+                var observable = valueAccessor();  // Get the associated observable
+                observable(index+1);               // Write the new rating to it
+              }); 
+          });
+        },
+        update: function(element, valueAccessor) {
+            // Give the first x stars the "chosen" class, where x <= rating
+            var observable = valueAccessor();
+            $("span", element).each(function(index) {
+                $(this).toggleClass("chosen", index < observable());
+            });
+        }
+      };
 
       function Image(title, rating, tags, imagePath) { 
         var self = this;
@@ -109,8 +143,6 @@
           new Image("Jewelry 008", null, null, 'img/008.jpg'),
         ]); 
 
-        self.nonFilteredItems = ko.observableArray();
-
         self.allTags = ko.computed(function(){
           var _tags = [];
           _.each(self.items(), function(item){ 
@@ -127,22 +159,26 @@
 
         // Behaviours    
         self.filterTags = function(selectedTag) { 
-          if (self.nonFilteredItems().length > 0)
-            self.items(self.nonFilteredItems());
-          var filtered = _.filter(self.items(), function(item){
-            var t = _.filter(item.tags(), function(tag){
-              return tag == selectedTag;
-            });
-            return _.isArray(t) && t.length > 0
-          });
-          self.nonFilteredItems(self.items());
-          self.items(filtered);
+          self.chosenTag(selectedTag);
+          $('.carousel').carousel(0);
         }; 
 
         self.clearFilter = function(){
-          self.items(self.nonFilteredItems());
-          self.nonFilteredItems([]);
+          self.chosenTag("");
+          $('.carousel').carousel(0);
         };
+
+        self.filteredImagesByTag = ko.computed(function() {
+          if (!self.chosenTag()) {
+            return self.items();
+          } 
+          return _.filter(self.items(), function(item){
+                    var t = _.filter(item.tags(), function(tag){
+                      return tag == self.chosenTag()
+                    });
+                  return _.isArray(t) && t.length > 0
+                });
+        });
 
       };
 
