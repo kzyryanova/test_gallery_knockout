@@ -20,15 +20,6 @@
       </div>
     </header>
     <div class="container">
-      <div class="img-list">
-        <ul data-bind="foreach: filteredImagesByTag">
-          <li>
-            <span data-bind="text: title"></span>
-            <span data-bind="text: rating"></span>
-          </li>
-        </ul>
-      </div>
-
       <div class="img-section">
         <div id="carousel" class="carousel slide">
           <!-- Indicators -->
@@ -49,7 +40,7 @@
                 <input data-bind='value: tagToAdd, valueUpdate: "afterkeydown"' />
                 <button data-bind="click: addTag">Add tag</button>  
               </p>
-              <ul data-bind="foreach: tags"> 
+              <ul data-bind="foreach: tags" class="inline-list"> 
                 <li>  
                   <span data-bind="text: $data"> </span>
                 </li> 

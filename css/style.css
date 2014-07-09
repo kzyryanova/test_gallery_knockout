@@ -73,7 +73,7 @@ select {
 }
 
 .container {
-  width: 1130px;
+  width: 980px;
   margin-right: auto;
   margin-left: auto;
 }
@@ -82,13 +82,11 @@ select {
   float: right;
 }
 
-.tags-section, .img-section, .img-list {
+.tags-section, .img-section {
   float: left;
   position: relative;
 }
-.img-list {
-  width: 150px;
-}
+
 .tags-section {
   width: 250px;
   padding-left: 10px;
@@ -100,6 +98,22 @@ select {
 
 .img-rating {
   float: left;
+}
+
+ul.inline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0;
+}
+
+ul.inline-list li {
+  display: inline-block;
+  font-size: 14px;
+}
+
+ul.inline-list li + li:before {
+  content: ',';
 }
 
 /* #Star Rating
