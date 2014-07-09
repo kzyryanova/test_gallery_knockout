@@ -73,7 +73,7 @@ select {
 }
 
 .container {
-  width: 1080px;
+  width: 1130px;
   margin-right: auto;
   margin-left: auto;
 }
@@ -87,7 +87,7 @@ select {
   position: relative;
 }
 .img-list {
-  width: 100px;
+  width: 150px;
 }
 .tags-section {
   width: 250px;

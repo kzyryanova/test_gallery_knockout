@@ -22,7 +22,10 @@
     <div class="container">
       <div class="img-list">
         <ul data-bind="foreach: filteredImagesByTag">
-          <li data-bind="text: title"></li>
+          <li>
+            <span data-bind="text: title"></span>
+            <span data-bind="text: rating"></span>
+          </li>
         </ul>
       </div>
 
@@ -160,12 +163,14 @@
         // Behaviours    
         self.filterTags = function(selectedTag) { 
           self.chosenTag(selectedTag);
-          $('.carousel').carousel(0);
+          self.currentPage(0);
+          fixActive();
         }; 
 
         self.clearFilter = function(){
           self.chosenTag("");
-          $('.carousel').carousel(0);
+          self.currentPage(0);
+          fixActive();
         };
 
         self.filteredImagesByTag = ko.computed(function() {
@@ -179,6 +184,13 @@
                   return _.isArray(t) && t.length > 0
                 });
         });
+
+        fixActive = function(){
+          $('.carousel-indicators').find('li.active').removeClass('active');
+          $('.carousel-indicators li:first-child').addClass('active');
+          $('.carousel-inner').find('.item.active').removeClass('active');
+          $('.carousel-inner .item:first-child').addClass('active');
+        };
 
       };
 
